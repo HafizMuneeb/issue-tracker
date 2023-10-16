@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { createIssueSchema } from '@/app/validationSchemas';
 import { z } from 'zod';
 import ErrorMessage from '@/app/components/ErrorMessage';
+import Spinner from '@/app/components/Spinner';
 
 
 type IssueForm = z.infer<typeof createIssueSchema>;
@@ -22,6 +23,7 @@ const NewIssuePage = () => {
     resolver: zodResolver(createIssueSchema)
    });
    const [error, setError] = useState('');
+   const [isSubmitting, setIsSubmitting] = useState(false);
   return (
     <div className='max-w-xl'>
         {error && <Callout.Root color="red" className='mb-5'>
@@ -31,9 +33,11 @@ const NewIssuePage = () => {
             className=' space-y-3' 
             onSubmit={handleSubmit(async (data) => {
                 try {
+                    setIsSubmitting(true);
                     await axios.post('/api/issues', data); 
                     router.push('/issues');  
                 } catch (error) {
+                    setIsSubmitting(false);
                     setError('An unExpected error occured')
                 }
             })}>
@@ -47,7 +51,7 @@ const NewIssuePage = () => {
                 render={({ field }) => <SimpleMDE placeholder='Description' {...field}/>}
             />
              <ErrorMessage>{errors.description?.message}</ErrorMessage>
-            <Button>Submit New Issue</Button>
+            <Button disabled={isSubmitting}>Submit New Issue {isSubmitting && <Spinner />}</Button>
         </form>
     </div>
   )
